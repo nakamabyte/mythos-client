@@ -37,10 +37,21 @@ export default function TopBar() {
       </div>
       
       <div className="flex items-center gap-3">
-        <div className="hidden lg:inline-flex items-center gap-2 bg-canvas border border-hairline rounded-md px-2.5 h-8 font-display text-charcoal cursor-pointer hover:border-ink hover:text-ink transition-colors">
-          <Badge>AGENT</Badge>
-          <span className="font-mono text-xs whitespace-nowrap">0x8f...39a2</span>
-        </div>
+        {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && (
+          <div 
+            className="hidden lg:inline-flex items-center gap-2 bg-canvas border border-hairline rounded-md px-2.5 h-8 font-display text-charcoal cursor-pointer hover:border-ink hover:text-ink transition-colors"
+            onClick={() => {
+              const ca = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+              if (ca) navigator.clipboard.writeText(ca);
+            }}
+            title="Click to copy CA"
+          >
+            <Badge>CA</Badge>
+            <span className="font-mono text-xs whitespace-nowrap">
+              {`${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(0, 6)}...${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(-4)}`}
+            </span>
+          </div>
+        )}
         {!isApp && (
           <Link href="/app" className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-lg font-display text-[15px] font-medium tracking-wide transition-all cursor-pointer bg-accent text-ink hover:bg-accent-deep hover:shadow-[0_0_15px_var(--accent)] hover:scale-105 border-none h-10 px-5 no-underline relative z-50">
             Launch App
