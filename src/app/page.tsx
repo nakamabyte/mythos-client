@@ -1,6 +1,7 @@
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import TopBar from "@/components/layout/TopBar";
 import Hero from "@/components/features/Hero";
+import MarketTicker from "@/components/features/MarketTicker";
 import StatsSection from "@/components/features/StatsSection";
 import StrategiesSection from "@/components/features/StrategiesSection";
 import HowItWorks from "@/components/features/HowItWorks";
@@ -15,6 +16,7 @@ export default function Home() {
       <TopBar />
       <main className="flex-1 w-full bg-canvas">
         <Hero />
+        <MarketTicker />
         
         {/* Features / Principles Section */}
         <section className="py-24 px-12 max-w-[1200px] mx-auto border-t border-hairline-soft">
@@ -30,7 +32,7 @@ export default function Home() {
               <div className="font-display text-sm font-semibold text-accent-deep tracking-widest uppercase mb-3">02</div>
               <h3 className="font-display text-xl font-semibold mb-3 text-ink">AI Models</h3>
               <p className="text-sm font-light leading-relaxed text-ash">
-                Using cutting-edge LLMs (Claude, Grok) with Monte Carlo simulations to assess risk and build robust portfolios.
+                Using cutting-edge LLMs (Claude, Grok) for real-time risk assessment, rapid sentiment analysis, and robust portfolio building.
               </p>
             </div>
             <div className="border-t border-hairline pt-6">

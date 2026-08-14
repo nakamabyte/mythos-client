@@ -56,51 +56,80 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Visual Column - The Isometric "Cake" Graphic mockup */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full aspect-[4/3] bg-zinc-50/50 rounded-2xl border border-hairline-soft overflow-hidden flex items-center justify-center shadow-[inset_0_0_40px_rgba(0,0,0,0.02)]"
-        >
-          <div className="absolute top-6 left-6 text-stone font-display text-sm uppercase tracking-widest z-10">
-            Agentic Engine
-          </div>
-          
-          {/* Abstract background grid */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]"></div>
-
-          {/* Simplified interactive card instead of a full SVG for the mock */}
-          <div className="absolute inset-0 flex items-center justify-center perspective-[1300px]">
-             <motion.div 
-                animate={{ rotateY: [-5, 5, -5], rotateX: [10, 15, 10], y: [-10, 10, -10] }}
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: [-15, 15, -15], 
-                  rotateX: [5, 25, 5],
-                  transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" } 
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-64 h-80 bg-gradient-to-br from-white/80 to-white/30 border border-white shadow-2xl backdrop-blur-md rounded-xl p-6 flex flex-col justify-between cursor-pointer"
+        {/* Visual Column - The Isometric Stack */}
+        <div className="relative w-full aspect-[4/3] flex items-center justify-center perspective-[2000px] group mt-12 lg:mt-16">
+          <motion.div 
+            className="relative w-[280px] h-[280px]"
+            style={{ 
+              transformStyle: 'preserve-3d', 
+              rotateX: 60,
+              rotateZ: 45
+            }}
+          >
+            {/* The Layers */}
+            {[
+              { id: 0, leftText: 'IaaS', rightText: 'RPC & NODE INFRASTRUCTURE', isTop: false },
+              { id: 1, leftText: 'DATA LAYER', rightText: 'REAL-TIME AGGREGATION', isTop: false },
+              { id: 2, leftText: 'RISK ENGINE', rightText: 'LIVE POSITION MANAGEMENT', isTop: false },
+              { id: 3, leftText: 'INTELLIGENCE', rightText: 'AI REASONING MODELS', isTop: false },
+              { id: 4, leftText: 'AGENT', rightText: 'AUTONOMOUS EXECUTION', isTop: true },
+            ].map((layer, idx) => (
+              <motion.div 
+                key={layer.id}
+                initial={{ z: idx * 45, x: 0, y: 0 }}
+                // x: -40, y: 40 translates to straight LEFT visually due to isometric projection
+                whileHover={{ x: -30, y: 30 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="absolute inset-0 cursor-pointer"
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                {/* Glossy overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent rounded-xl pointer-events-none"></div>
+                {/* Top Face */}
+                <div className={`absolute inset-0 border-[1.5px] flex items-center justify-center transition-colors duration-300
+                  ${layer.isTop ? 'bg-accent border-[#00a86b]' : 'bg-white border-zinc-300 hover:bg-zinc-50'}
+                `}>
+                  {layer.isTop && (
+                    <div className="transform -rotate-45 font-display text-5xl font-bold tracking-tighter text-ink opacity-90 pointer-events-none">
+                      mythos.
+                    </div>
+                  )}
+                </div>
 
-                <div className="relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-accent mb-4 shadow-[0_0_15px_var(--accent)] animate-pulse"></div>
-                  <div className="h-2 w-24 bg-ink/20 rounded mb-2"></div>
-                  <div className="h-2 w-32 bg-ink/10 rounded"></div>
+                {/* Left Visible Face (Bottom edge of X-Y plane) */}
+                <div 
+                  className={`absolute flex items-center px-4 overflow-hidden border-[1.5px] transition-colors duration-300
+                    ${layer.isTop ? 'bg-[#00d084] border-[#00a86b]' : 'bg-zinc-100 border-zinc-300'}
+                  `}
+                  style={{ 
+                    width: '280px', height: '40px',
+                    transformOrigin: 'top', transform: 'translateY(280px) rotateX(-90deg)' 
+                  }}
+                >
+                  <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-semibold ${layer.isTop ? 'text-ink/70' : 'text-ash'}`}>
+                    {layer.leftText}
+                  </span>
                 </div>
-                <div className="relative z-10 bg-white/50 p-4 rounded-lg border border-white/50 backdrop-blur-sm">
-                  <div className="text-[10px] font-mono text-ink/50 uppercase mb-1">Status</div>
-                  <div className="font-display text-sm font-bold text-accent-deep flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                    EXECUTING TRADES
-                  </div>
+
+                {/* Right Visible Face (Right edge of X-Y plane) */}
+                <div 
+                  className={`absolute flex items-center justify-center overflow-hidden border-[1.5px] transition-colors duration-300
+                    ${layer.isTop ? 'bg-[#00e691] border-[#00a86b]' : 'bg-zinc-200/80 border-zinc-300'}
+                  `}
+                  style={{ 
+                    width: '40px', height: '280px',
+                    transformOrigin: 'left', transform: 'translateX(280px) rotateY(90deg)' 
+                  }}
+                >
+                  <span 
+                    className={`font-display text-[11px] tracking-[0.15em] font-bold whitespace-nowrap ${layer.isTop ? 'text-ink/80' : 'text-stone'}`} 
+                    style={{ transform: 'rotate(-90deg)' }}
+                  >
+                    {layer.rightText}
+                  </span>
                 </div>
-             </motion.div>
-          </div>
-        </motion.div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </section>
   );
