@@ -28,7 +28,7 @@ export default function TopBar() {
           {SITE_CONFIG.name}
         </Link>
         <div className="hidden md:flex items-center gap-7">
-          {!isApp && SITE_CONFIG.navLinks.main.map((link) => (
+          {SITE_CONFIG.navLinks.main.map((link) => (
             <Link key={link.label} href={link.href} className="font-display text-sm font-medium text-charcoal hover:text-accent-deep">
               {link.label}
             </Link>
@@ -71,48 +71,22 @@ export default function TopBar() {
       {isOpen && (
         <div className="fixed inset-0 bg-canvas/95 backdrop-blur-md z-40 flex flex-col pt-20 px-6 md:hidden">
           <div className="flex flex-col gap-6">
-            {isApp ? (
-              // Dashboard Mobile Links
-              <>
-                <div className="font-display text-xs font-semibold tracking-widest uppercase text-stone mb-2 border-b border-hairline-soft pb-2">Dashboard Navigation</div>
-                {SITE_CONFIG.sidebar.map(section => (
-                  <div key={section.group} className="flex flex-col gap-4 mb-2">
-                    {section.items.map(item => {
-                      const Icon = IconMap[item.icon];
-                      const active = pathname === item.href || (item.href !== '/app' && pathname?.startsWith(item.href));
-                      return (
-                        <Link 
-                          key={item.label} 
-                          href={item.href}
-                          className={`flex items-center gap-4 text-lg font-display font-medium ${active ? 'text-accent-deep' : 'text-ink'}`}
-                        >
-                          {Icon && <Icon className="w-5 h-5" />}
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ))}
-              </>
-            ) : (
-              // Public Pages Mobile Links
-              <>
-                {SITE_CONFIG.navLinks.main.map((link) => (
-                  <Link 
-                    key={link.label} 
-                    href={link.href} 
-                    className="font-display text-2xl font-medium text-ink hover:text-accent-deep"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                <Link 
-                  href="/app" 
-                  className="mt-4 inline-flex items-center justify-center rounded-lg font-display text-lg font-medium tracking-wide transition-all bg-accent text-ink h-14 w-full"
-                >
-                  Launch App
-                </Link>
-              </>
+            {SITE_CONFIG.navLinks.main.map((link) => (
+              <Link 
+                key={link.label} 
+                href={link.href} 
+                className="font-display text-2xl font-medium text-ink hover:text-accent-deep"
+              >
+                {link.label}
+              </Link>
+            ))}
+            {!isApp && (
+              <Link 
+                href="/app" 
+                className="mt-4 inline-flex items-center justify-center rounded-lg font-display text-lg font-medium tracking-wide transition-all bg-accent text-ink h-14 w-full"
+              >
+                Launch App
+              </Link>
             )}
           </div>
         </div>

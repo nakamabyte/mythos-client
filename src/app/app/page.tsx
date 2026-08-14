@@ -1,6 +1,7 @@
 import React from 'react';
 import MetricsLedger from "@/components/features/MetricsLedger";
 import AgentLogs from "@/components/features/AgentLogs";
+import SystemLogs from "@/components/features/SystemLogs";
 
 export default function DashboardPage() {
   return (
@@ -47,8 +48,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-8">
-          <AgentLogs />
+        <div className="flex flex-col gap-8 h-[800px]">
+          <div className="h-1/2 min-h-[300px]">
+            <AgentLogs />
+          </div>
+          <div className="h-1/2 min-h-[300px]">
+            <SystemLogs />
+          </div>
         </div>
       </div>
     </div>

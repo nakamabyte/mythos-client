@@ -1,51 +1,126 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
-import { MOCK_AGENT_LOGS } from '@/data/mock';
+import { supabase } from '@/lib/supabase';
+import { Activity } from 'lucide-react';
+import Link from 'next/link';
 
-type LogData = typeof MOCK_AGENT_LOGS[0];
-
-interface AgentLogsProps {
-  logs?: LogData[];
+interface TradeLog {
+  id: string;
+  symbol: string;
+  side: string;
+  entry_price: number | null;
+  position_size: number | null;
+  entry_time: string | null;
+  net_pnl_usd: number | null;
 }
 
-export default function AgentLogs({ logs = MOCK_AGENT_LOGS }: AgentLogsProps) {
+export default function AgentLogs() {
+  const [logs, setLogs] = useState<TradeLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Fetch initial data
+    const fetchLogs = async () => {
+      const { data, error } = await supabase
+        .from('trade_logs')
+        .select('id, symbol, side, entry_price, position_size, entry_time, net_pnl_usd')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (!error && data) {
+        setLogs(data);
+      }
+      setIsLoading(false);
+    };
+
+    fetchLogs();
+
+    // 2. Set up realtime subscription
+    const channel = supabase
+      .channel('trade_logs_changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'trade_logs' },
+        (payload) => {
+          setLogs((current) => [payload.new as TradeLog, ...current].slice(0, 10));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return 'Pending';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatCurrency = (value: number | null) => {
+    if (value === null) return '-';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  };
+
   return (
-    <div className="border border-hairline-soft rounded-xl bg-canvas overflow-hidden">
+    <div className="border border-hairline-soft rounded-xl bg-canvas overflow-hidden flex flex-col h-full">
       <div className="px-6 py-5 border-b border-hairline-soft flex justify-between items-center bg-[#fbfcfd]">
         <h3 className="font-display text-[15px] font-semibold text-ink">Recent Executions</h3>
-        <Badge variant="outline">Last 24H</Badge>
+        <Badge variant="outline">Live Feed</Badge>
       </div>
-      <div className="divide-y divide-hairline-soft">
-        {logs.map((log) => (
-          <div key={log.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-display text-xs font-bold ${log.side === 'BUY' ? 'bg-accent/20 text-accent-deep' : 'bg-red-500/10 text-red-600'}`}>
-                {log.side}
-              </div>
-              <div>
-                <div className="font-display text-sm font-semibold text-ink">{log.pair}</div>
-                <div className="text-[11px] text-ash mt-0.5">{log.time}</div>
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <div className="font-display text-sm font-medium text-ink tabular-nums">
-                {log.amount} @ ${log.price}
-              </div>
-              {log.pnl && (
-                <div className={`text-[11.5px] font-medium tabular-nums mt-0.5 ${log.pnl.startsWith('+') ? 'text-accent-deep' : 'text-red-500'}`}>
-                  PnL: {log.pnl}
-                </div>
-              )}
-            </div>
+      
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-48 text-stone">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-deep mb-4"></div>
+            <p className="font-mono text-xs uppercase tracking-widest">Connecting to Agent...</p>
           </div>
-        ))}
+        ) : logs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 text-stone p-6 text-center">
+            <Activity size={32} className="mb-3 text-hairline-soft" />
+            <p className="font-display text-sm font-medium text-charcoal mb-1">Awaiting Signals</p>
+            <p className="text-xs">The autonomous agent is currently scanning the market. Executions will appear here automatically.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-hairline-soft">
+            {logs.map((log) => (
+              <div key={log.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={`px-2 py-1 rounded flex items-center justify-center font-display text-[10px] font-bold tracking-widest uppercase ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                    {log.side || 'UNK'}
+                  </div>
+                  <div>
+                    <div className="font-display text-sm font-semibold text-ink">{log.symbol}</div>
+                    <div className="text-[11px] text-ash mt-0.5">{formatTime(log.entry_time)}</div>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className="font-display text-sm font-medium text-ink tabular-nums">
+                    {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price}` : 'MKT'}
+                  </div>
+                  {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined && (
+                    <div className={`text-[11.5px] font-medium tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
+                      PnL: {formatCurrency(log.net_pnl_usd)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="px-6 py-3 border-t border-hairline-soft bg-zinc-50/50 text-center">
-        <a href="#" className="font-display text-xs font-semibold text-accent-deep hover:underline">
-          View All Logs &rarr;
-        </a>
-      </div>
+      
+      {logs.length > 0 && (
+        <div className="px-6 py-3 border-t border-hairline-soft bg-zinc-50/50 text-center">
+          <Link href="/app/ledger" className="font-display text-xs font-semibold text-accent-deep hover:underline">
+            View Full Ledger &rarr;
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

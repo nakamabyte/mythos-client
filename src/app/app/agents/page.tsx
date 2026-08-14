@@ -3,7 +3,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/Badge';
 import AgentLogs from '@/components/features/AgentLogs';
-import { MOCK_AGENT_LOGS } from '@/data/mock';
+// Removed MOCK_AGENT_LOGS import
 import { Activity, Power, Terminal } from 'lucide-react';
 
 export default function AgentsPage() {
@@ -86,8 +86,8 @@ export default function AgentsPage() {
 
       <div>
         <h2 className="font-display text-lg font-semibold text-ink mb-4">Global Execution Feed</h2>
-        {/* We reuse the AgentLogs component, passing the mock data */}
-        <AgentLogs logs={MOCK_AGENT_LOGS} />
+        {/* We reuse the AgentLogs component, which now connects directly to Supabase */}
+        <AgentLogs />
       </div>
     </div>
   );
