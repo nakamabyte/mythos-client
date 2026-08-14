@@ -26,7 +26,7 @@ export default function StrategiesPage() {
   ];
 
   return (
-    <div className="p-8 max-w-[1200px] w-full">
+    <div className="p-4 md:p-8 max-w-[1200px] w-full">
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink mb-2">Vaults & Strategies</h1>

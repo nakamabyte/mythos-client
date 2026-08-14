@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function Hero() {
   return (
-    <section className="pt-16 pb-20 px-12 max-w-[1200px] mx-auto relative">
+    <section className="pt-16 pb-20 px-6 md:px-12 max-w-[1200px] mx-auto relative">
       {/* Background ambient glow */}
       <div className="absolute top-20 left-20 w-[400px] h-[400px] bg-accent/20 rounded-full blur-[120px] pointer-events-none -z-10"></div>
       

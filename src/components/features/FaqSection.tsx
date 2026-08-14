@@ -27,7 +27,7 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="py-32 px-12 max-w-[800px] mx-auto">
+    <section className="py-32 px-6 md:px-12 max-w-[800px] mx-auto border-t border-hairline-soft">
       <div className="text-center mb-16">
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}

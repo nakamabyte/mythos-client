@@ -4,7 +4,7 @@ import AgentLogs from "@/components/features/AgentLogs";
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 p-4 md:p-8">
       <div className="flex items-end justify-between border-b border-hairline-soft pb-6">
         <div>
           <h1 className="font-display text-3xl md:text-4xl font-light text-ink tracking-tight mb-2">

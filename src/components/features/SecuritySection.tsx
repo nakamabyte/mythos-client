@@ -24,7 +24,7 @@ export default function SecuritySection() {
   ];
 
   return (
-    <section className="py-32 px-12 max-w-[1200px] mx-auto border-t border-hairline-soft relative">
+    <section className="py-32 px-6 md:px-12 max-w-[1200px] mx-auto border-t border-hairline-soft relative">
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-zinc-200/50 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-16 items-start">

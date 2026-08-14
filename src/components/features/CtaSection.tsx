@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function CtaSection() {
   return (
-    <section className="py-32 px-12 border-t border-hairline-soft bg-ink text-white relative overflow-hidden">
+    <section className="py-32 px-6 md:px-12 border-t border-hairline-soft bg-ink text-white relative overflow-hidden">
       {/* Animated abstract background decoration */}
       <motion.div 
         animate={{ 

@@ -28,7 +28,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-32 px-12 max-w-[1200px] mx-auto border-t border-hairline-soft relative overflow-hidden">
+    <section className="py-32 px-6 md:px-12 max-w-[1200px] mx-auto border-t border-hairline-soft relative overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
           <motion.h2 
