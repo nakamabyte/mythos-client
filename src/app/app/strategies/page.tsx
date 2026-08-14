@@ -7,9 +7,9 @@ export default function StrategiesPage() {
       id: "strat_dn_01",
       name: "Delta Neutral Arb",
       status: "Active",
-      allocated: "$450,210.00",
+      allocated: "$10.000",
       pnl30d: "+12.4%",
-      pnlUsd: "+$55,826.04",
+      pnlUsd: "+$55",
       risk: "Low",
       tradesCount: 1204
     },
@@ -17,9 +17,9 @@ export default function StrategiesPage() {
       id: "strat_hft_02",
       name: "High-Frequency Momentum",
       status: "Active",
-      allocated: "$1,200,000.00",
+      allocated: "$5000",
       pnl30d: "+45.2%",
-      pnlUsd: "+$542,400.00",
+      pnlUsd: "+$542",
       risk: "Medium",
       tradesCount: 45201
     }
