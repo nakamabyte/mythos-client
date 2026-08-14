@@ -25,6 +25,7 @@ export default function SystemLogs() {
       const { data, error } = await supabase
         .from('system_logs')
         .select('*')
+        .neq('level', 'error')
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -43,7 +44,10 @@ export default function SystemLogs() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'system_logs' },
         (payload) => {
-          setLogs((current) => [...current, payload.new as SystemLog].slice(-50));
+          const newLog = payload.new as SystemLog;
+          if (newLog.level?.toLowerCase() !== 'error') {
+            setLogs((current) => [...current, newLog].slice(-50));
+          }
         }
       )
       .subscribe();

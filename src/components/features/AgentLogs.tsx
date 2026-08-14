@@ -27,7 +27,7 @@ export default function AgentLogs() {
     const fetchLogs = async () => {
       const { data, error } = await supabase
         .from('trade_logs')
-        .select('id, symbol, side, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
+        .select('id, symbol, side, status, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -102,12 +102,11 @@ export default function AgentLogs() {
           </div>
         ) : (
           <div className="divide-y divide-hairline-soft">
-            {logs.map((log) => (
+            {logs.map((log) => {
+              const isLong = log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy';
+              return (
               <div key={log.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className={`px-2 py-1 rounded flex items-center justify-center font-display text-[10px] font-bold tracking-widest uppercase ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                    {log.side || 'UNK'}
-                  </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-display text-sm font-semibold text-ink">{log.symbol}</span>
@@ -119,22 +118,32 @@ export default function AgentLogs() {
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  <div className="font-display text-sm font-medium text-ink tabular-nums">
-                    {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price}` : 'MKT'}
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <div className="font-display text-sm font-medium text-ink tabular-nums">
+                      {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price}` : 'MKT'}
+                    </div>
+                    {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined ? (
+                      <div className={`text-[11.5px] font-bold tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
+                        PnL: {formatCurrency(log.net_pnl_usd)}
+                      </div>
+                    ) : (
+                      <div className="text-[11.5px] font-medium tabular-nums mt-0.5 text-ash">
+                        Open Position
+                      </div>
+                    )}
                   </div>
-                  {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined ? (
-                    <div className={`text-[11.5px] font-bold tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
-                      PnL: {formatCurrency(log.net_pnl_usd)}
-                    </div>
-                  ) : (
-                    <div className="text-[11.5px] font-medium tabular-nums mt-0.5 text-ash">
-                      Open Position
-                    </div>
-                  )}
+                  
+                  <div className="flex items-center gap-2 justify-end w-16">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isLong ? 'bg-[#00a86b]' : 'bg-red-500'}`}></div>
+                    <span className={`font-display text-xs font-bold tracking-widest uppercase ${isLong ? 'text-[#00a86b]' : 'text-red-500'}`}>
+                      {log.side || 'UNK'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

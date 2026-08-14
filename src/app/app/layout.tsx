@@ -1,4 +1,5 @@
 import TopBar from "@/components/layout/TopBar";
+import TradeNotifications from "@/components/layout/TradeNotifications";
 
 export default function AppLayout({
   children,
@@ -13,6 +14,7 @@ export default function AppLayout({
           {children}
         </main>
       </div>
+      <TradeNotifications />
     </div>
   );
 }

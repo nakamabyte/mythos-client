@@ -33,7 +33,7 @@ export default function LedgerPage() {
       const { data, error } = await supabase
         .from('trade_logs')
         .select('*')
-        .order('entry_time', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(100);
       
       if (!error && data) {
@@ -153,8 +153,11 @@ export default function LedgerPage() {
                     <td className="px-6 py-4 text-ash">{formatTime(log.entry_time)}</td>
                     <td className="px-6 py-4 font-semibold font-display">{log.symbol}</td>
                     <td className="px-6 py-4">
-                      <div className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                        {log.side || 'UNK'}
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2.5 h-2.5 rounded-full ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'bg-[#00a86b]' : 'bg-red-500'}`}></div>
+                        <span className={`font-display text-xs font-bold tracking-widest uppercase ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'text-[#00a86b]' : 'text-red-500'}`}>
+                          {log.side || 'UNK'}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right tabular-nums">{log.position_size || '-'}</td>
