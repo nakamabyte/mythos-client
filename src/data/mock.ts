@@ -25,8 +25,8 @@ export const SITE_CONFIG = {
     ],
     socials: [
       { label: "Twitter", href: "#" },
-      { label: "GitHub", href: "https://github.com/mythos" },
       { label: "Docs", href: "/docs" },
+      { label: "Terms of Service", href: "/terms" },
     ]
   },
   sidebar: [

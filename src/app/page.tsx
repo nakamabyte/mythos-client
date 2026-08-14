@@ -57,9 +57,8 @@ export default function Home() {
           <div className="font-display font-medium text-white text-lg">mythos.</div>
           <div className="flex gap-8">
             <a href="#" className="hover:text-white transition-colors">Twitter</a>
-            <a href="https://github.com/mythos" className="hover:text-white transition-colors">GitHub</a>
             <a href="/docs" className="hover:text-white transition-colors">Documentation</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </footer>
