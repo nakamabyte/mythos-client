@@ -19,9 +19,7 @@ export const SITE_CONFIG = {
   status: "Healthy",
   navLinks: {
     main: [
-      { label: "Dashboard", href: "/app" },
-      { label: "Strategy", href: "/app/strategies" },
-      { label: "Agents", href: "/app/agents" },
+      { label: "Terminal", href: "/app" },
     ],
     socials: [
       { label: "Twitter", href: "#" },
@@ -33,10 +31,8 @@ export const SITE_CONFIG = {
     {
       group: "Core",
       items: [
-        { label: "Dashboard", href: "/app", icon: "Activity" },
+        { label: "Terminal", href: "/app", icon: "Activity" },
         { label: "Portfolio", href: "#", icon: "Briefcase" },
-        { label: "Strategies", href: "/app/strategies", icon: "Command" },
-        { label: "Agents", href: "/app/agents", icon: "Settings" },
       ]
     },
     {

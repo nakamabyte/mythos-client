@@ -13,6 +13,8 @@ interface TradeLog {
   entry_price: number | null;
   position_size: number | null;
   entry_time: string | null;
+  exit_time: string | null;
+  exit_reason: string | null;
   net_pnl_usd: number | null;
 }
 
@@ -25,7 +27,7 @@ export default function AgentLogs() {
     const fetchLogs = async () => {
       const { data, error } = await supabase
         .from('trade_logs')
-        .select('id, symbol, side, entry_price, position_size, entry_time, net_pnl_usd')
+        .select('id, symbol, side, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -42,9 +44,13 @@ export default function AgentLogs() {
       .channel('trade_logs_changes')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'trade_logs' },
+        { event: '*', schema: 'public', table: 'trade_logs' },
         (payload) => {
-          setLogs((current) => [payload.new as TradeLog, ...current].slice(0, 10));
+          if (payload.eventType === 'INSERT') {
+            setLogs((current) => [payload.new as TradeLog, ...current].slice(0, 10));
+          } else if (payload.eventType === 'UPDATE') {
+            setLogs((current) => current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log));
+          }
         }
       )
       .subscribe();
@@ -65,11 +71,21 @@ export default function AgentLogs() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   };
 
+  const formatExitReason = (reason: string | null) => {
+    if (!reason) return 'CLOSED';
+    if (reason === 'take_profit') return 'TP';
+    if (reason === 'stop_loss') return 'SL';
+    if (reason === 'strategy_reversal') return 'REVERSAL';
+    return reason.toUpperCase();
+  };
+
   return (
     <div className="border border-hairline-soft rounded-xl bg-canvas overflow-hidden flex flex-col h-full">
-      <div className="px-6 py-5 border-b border-hairline-soft flex justify-between items-center bg-[#fbfcfd]">
-        <h3 className="font-display text-[15px] font-semibold text-ink">Recent Executions</h3>
-        <Badge variant="outline">Live Feed</Badge>
+      <div className="bg-zinc-50 border-b border-hairline-soft px-4 py-2 flex justify-between items-center">
+        <h2 className="font-display text-[10px] uppercase tracking-widest font-semibold text-ash">Live Execution Feed</h2>
+        <div className="flex gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-deep animate-pulse"></span>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto">
@@ -93,7 +109,12 @@ export default function AgentLogs() {
                     {log.side || 'UNK'}
                   </div>
                   <div>
-                    <div className="font-display text-sm font-semibold text-ink">{log.symbol}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-sm font-semibold text-ink">{log.symbol}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase ${log.net_pnl_usd === null ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse' : 'bg-stone/10 text-stone border border-stone/20'}`}>
+                        {log.net_pnl_usd === null ? 'RUNNING' : formatExitReason(log.exit_reason)}
+                      </span>
+                    </div>
                     <div className="text-[11px] text-ash mt-0.5">{formatTime(log.entry_time)}</div>
                   </div>
                 </div>
@@ -102,9 +123,13 @@ export default function AgentLogs() {
                   <div className="font-display text-sm font-medium text-ink tabular-nums">
                     {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price}` : 'MKT'}
                   </div>
-                  {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined && (
-                    <div className={`text-[11.5px] font-medium tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
+                  {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined ? (
+                    <div className={`text-[11.5px] font-bold tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
                       PnL: {formatCurrency(log.net_pnl_usd)}
+                    </div>
+                  ) : (
+                    <div className="text-[11.5px] font-medium tabular-nums mt-0.5 text-ash">
+                      Open Position
                     </div>
                   )}
                 </div>

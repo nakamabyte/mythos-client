@@ -9,10 +9,8 @@ export default function AppLayout({
     <div className="flex flex-col min-h-screen">
       <TopBar />
       <div className="flex flex-1">
-        <main className="flex-1 w-full bg-canvas">
-          <div className="max-w-[1200px] mx-auto p-6 md:p-10 lg:p-12">
-            {children}
-          </div>
+        <main className="flex-1 w-full bg-canvas flex flex-col">
+          {children}
         </main>
       </div>
     </div>
