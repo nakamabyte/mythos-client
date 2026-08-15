@@ -16,6 +16,9 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Mythos Trading Agent",
   description: "AI Software Factories",
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

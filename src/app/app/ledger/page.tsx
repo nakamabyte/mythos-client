@@ -29,6 +29,7 @@ export default function LedgerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [filterSymbol, setFilterSymbol] = useState('ALL');
   const [filterSide, setFilterSide] = useState('ALL');
+  const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({});
 
   // Share Modal State
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -56,6 +57,36 @@ export default function LedgerPage() {
 
     fetchLogs();
   }, []);
+
+  // Poll for real-time prices for RUNNING trades
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const runningLogs = logs.filter(l => l.status === 'RUNNING');
+      if (runningLogs.length === 0) return;
+      const symbols = Array.from(new Set(runningLogs.map(l => l.symbol)));
+      
+      try {
+        const promises = symbols.map(async sym => {
+          const res = await fetch(`https://api-demo.bybit.com/v5/market/tickers?category=linear&symbol=${sym}`);
+          const data = await res.json();
+          if (data?.result?.list?.[0]?.markPrice) {
+            return { symbol: sym, price: parseFloat(data.result.list[0].markPrice) };
+          }
+          return { symbol: sym, price: NaN };
+        });
+        const results = await Promise.all(promises);
+        const newPrices: Record<string, number> = {};
+        results.forEach(r => { if (r.price && !isNaN(r.price)) newPrices[r.symbol] = r.price; });
+        setCurrentPrices(newPrices);
+      } catch (e) {
+        // silent catch
+      }
+    };
+    
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 3000);
+    return () => clearInterval(interval);
+  }, [logs]);
 
   const formatTime = (isoString: string | null) => {
     if (!isoString) return '-';
@@ -162,14 +193,24 @@ export default function LedgerPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => (
+                  filteredLogs.map((log) => {
+                    const isLong = log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy';
+                    const currentPrice = log.status === 'RUNNING' ? currentPrices[log.symbol] : null;
+                    let livePnl: number | null = null;
+                    
+                    if (log.status === 'RUNNING' && currentPrice && log.entry_price && log.position_size) {
+                      const diff = isLong ? (currentPrice - log.entry_price) : (log.entry_price - currentPrice);
+                      livePnl = diff * log.position_size;
+                    }
+
+                    return (
                   <tr key={log.id} className="hover:bg-zinc-50/50 transition-colors">
                     <td className="px-6 py-4 text-ash">{formatTime(log.entry_time)}</td>
                     <td className="px-6 py-4 font-semibold font-display">{log.symbol}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2.5 h-2.5 rounded-full ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'bg-[#00a86b]' : 'bg-red-500'}`}></div>
-                        <span className={`font-display text-xs font-bold tracking-widest uppercase ${log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy' ? 'text-[#00a86b]' : 'text-red-500'}`}>
+                        <div className={`w-2.5 h-2.5 rounded-full ${isLong ? 'bg-[#00a86b]' : 'bg-red-500'}`}></div>
+                        <span className={`font-display text-xs font-bold tracking-widest uppercase ${isLong ? 'text-[#00a86b]' : 'text-red-500'}`}>
                           {log.side || 'UNK'}
                         </span>
                       </div>
@@ -187,10 +228,17 @@ export default function LedgerPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right tabular-nums">{log.position_size || '-'}</td>
-                    <td className="px-6 py-4 text-right tabular-nums">{log.entry_price ? `$${log.entry_price}` : '-'}</td>
-                    <td className="px-6 py-4 text-right tabular-nums text-ash">{log.exit_price ? `$${log.exit_price}` : '-'}</td>
+                    <td className="px-6 py-4 text-right tabular-nums">{log.entry_price ? `$${log.entry_price.toFixed(4)}` : '-'}</td>
+                    <td className="px-6 py-4 text-right tabular-nums text-ash">
+                      {log.exit_price ? `$${log.exit_price.toFixed(4)}` : '-'}
+                    </td>
                     <td className="px-6 py-4 text-right">
-                      {log.net_pnl_usd !== null ? (
+                      {log.status === 'RUNNING' && livePnl !== null ? (
+                        <span className={`font-medium tabular-nums flex items-center justify-end gap-1 ${livePnl >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
+                          {livePnl > 0 ? '+' : ''}{formatCurrency(livePnl)}
+                          <span className="text-[9px] font-mono opacity-60">LIVE</span>
+                        </span>
+                      ) : log.net_pnl_usd !== null ? (
                         <span className={`font-medium tabular-nums ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
                           {log.net_pnl_usd > 0 ? '+' : ''}{formatCurrency(log.net_pnl_usd)}
                         </span>
@@ -202,9 +250,9 @@ export default function LedgerPage() {
                       {getReason(log)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {log.status === 'CLOSED' && log.net_pnl_usd !== null && (
+                      {(log.status === 'CLOSED' || log.status === 'RUNNING') && (log.net_pnl_usd !== null || livePnl !== null) && (
                         <button 
-                          onClick={() => handleShare(log)}
+                          onClick={() => handleShare({...log, exit_price: log.exit_price || currentPrice, net_pnl_usd: log.net_pnl_usd || livePnl})}
                           className="p-1.5 text-ash hover:text-ink hover:bg-zinc-100 rounded-md transition-colors"
                           title="Share PnL Card"
                         >
@@ -213,7 +261,8 @@ export default function LedgerPage() {
                       )}
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

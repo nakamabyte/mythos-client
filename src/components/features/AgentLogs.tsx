@@ -22,6 +22,7 @@ interface TradeLog {
 export default function AgentLogs() {
   const [logs, setLogs] = useState<TradeLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     // 1. Fetch initial data
@@ -29,9 +30,9 @@ export default function AgentLogs() {
       const { data, error } = await supabase
         .from('trade_logs')
         .select('id, symbol, side, status, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
-        .order('status', { ascending: false })
+        .eq('status', 'RUNNING')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
       
       if (!error && data) {
         setLogs(data);
@@ -49,22 +50,25 @@ export default function AgentLogs() {
         { event: '*', schema: 'public', table: 'trade_logs' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setLogs((current) => {
-              const newLogs = [payload.new as TradeLog, ...current];
-              return newLogs.sort((a, b) => {
-                if ((a.net_pnl_usd === null) && (b.net_pnl_usd !== null)) return -1;
-                if ((a.net_pnl_usd !== null) && (b.net_pnl_usd === null)) return 1;
-                return new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime();
-              }).slice(0, 10);
-            });
+            if (payload.new.status === 'RUNNING') {
+              setLogs((current) => {
+                const newLogs = [payload.new as TradeLog, ...current];
+                return newLogs.sort((a, b) => new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime());
+              });
+            }
           } else if (payload.eventType === 'UPDATE') {
             setLogs((current) => {
-              const updatedLogs = current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log);
-              return updatedLogs.sort((a, b) => {
-                if ((a.net_pnl_usd === null) && (b.net_pnl_usd !== null)) return -1;
-                if ((a.net_pnl_usd !== null) && (b.net_pnl_usd === null)) return 1;
-                return new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime();
-              });
+              if (payload.new.status !== 'RUNNING') {
+                return current.filter(log => log.id !== payload.new.id);
+              }
+              const exists = current.find(log => log.id === payload.new.id);
+              let updatedLogs = current;
+              if (exists) {
+                updatedLogs = current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log);
+              } else {
+                updatedLogs = [payload.new as TradeLog, ...current];
+              }
+              return updatedLogs.sort((a, b) => new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime());
             });
           }
         }
@@ -75,6 +79,36 @@ export default function AgentLogs() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Poll for real-time prices
+  useEffect(() => {
+    const fetchPrices = async () => {
+      if (logs.length === 0) return;
+      const symbols = Array.from(new Set(logs.map(l => l.symbol)));
+      
+      try {
+        const promises = symbols.map(async sym => {
+          // Using Bybit Testnet API since the trading agent is on Testnet
+          const res = await fetch(`https://api-demo.bybit.com/v5/market/tickers?category=linear&symbol=${sym}`);
+          const data = await res.json();
+          if (data?.result?.list?.[0]?.markPrice) {
+            return { symbol: sym, price: parseFloat(data.result.list[0].markPrice) };
+          }
+          return { symbol: sym, price: NaN };
+        });
+        const results = await Promise.all(promises);
+        const newPrices: Record<string, number> = {};
+        results.forEach(r => { if (r.price && !isNaN(r.price)) newPrices[r.symbol] = r.price; });
+        setCurrentPrices(newPrices);
+      } catch (e) {
+        // silent catch
+      }
+    };
+    
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 3000);
+    return () => clearInterval(interval);
+  }, [logs]);
 
   const formatTime = (isoString: string | null) => {
     if (!isoString) return 'Pending';
@@ -120,6 +154,14 @@ export default function AgentLogs() {
           <div className="divide-y divide-hairline-soft">
             {logs.map((log) => {
               const isLong = log.side?.toLowerCase() === 'long' || log.side?.toLowerCase() === 'buy';
+              const currentPrice = currentPrices[log.symbol];
+              let livePnl: number | null = null;
+              
+              if (currentPrice && log.entry_price && log.position_size) {
+                const diff = isLong ? (currentPrice - log.entry_price) : (log.entry_price - currentPrice);
+                livePnl = diff * log.position_size;
+              }
+
               return (
               <div key={log.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
                 <div className="flex items-center gap-4">
@@ -144,11 +186,12 @@ export default function AgentLogs() {
                 <div className="flex items-center gap-6">
                   <div className="text-right">
                     <div className="font-display text-sm font-medium text-ink tabular-nums">
-                      {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price}` : 'MKT'}
+                      {log.position_size || 0} @ {log.entry_price ? `$${log.entry_price.toFixed(4)}` : 'MKT'}
                     </div>
-                    {log.net_pnl_usd !== null && log.net_pnl_usd !== undefined ? (
-                      <div className={`text-[11.5px] font-bold tabular-nums mt-0.5 ${log.net_pnl_usd >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
-                        PnL: {formatCurrency(log.net_pnl_usd)}
+                    {livePnl !== null ? (
+                      <div className={`text-[11.5px] font-bold tabular-nums mt-0.5 flex items-center justify-end gap-1 ${livePnl >= 0 ? 'text-accent-deep' : 'text-red-500'}`}>
+                        {livePnl >= 0 ? '+$' : '-$'}{Math.abs(livePnl).toFixed(4)}
+                        <span className="text-[9px] font-mono opacity-60">LIVE</span>
                       </div>
                     ) : (
                       <div className="text-[11.5px] font-medium tabular-nums mt-0.5 text-ash">
@@ -171,13 +214,12 @@ export default function AgentLogs() {
         )}
       </div>
       
-      {logs.length > 0 && (
-        <div className="px-6 py-3 border-t border-hairline-soft bg-zinc-50/50 text-center">
-          <Link href="/app/ledger" className="font-display text-xs font-semibold text-accent-deep hover:underline">
-            View Full Ledger &rarr;
-          </Link>
-        </div>
-      )}
+      {/* Footer link to Ledger */}
+      <div className="px-6 py-3 border-t border-hairline-soft bg-zinc-50/50 text-center">
+        <Link href="/app/ledger" className="font-display text-xs font-semibold text-accent-deep hover:underline">
+          Full History &rarr;
+        </Link>
+      </div>
     </div>
   );
 }

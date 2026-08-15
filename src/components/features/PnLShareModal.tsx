@@ -164,6 +164,7 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
 
           {/* Top Bar */}
           <div className="relative z-10 flex items-center gap-3 mb-10">
+            <img src="/logo.png" alt="Mythos Logo" className="h-8 w-auto object-contain" />
             <div className="font-display font-bold text-2xl text-white tracking-widest">
               MYTHOS
             </div>

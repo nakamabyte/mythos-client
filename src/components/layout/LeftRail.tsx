@@ -18,7 +18,8 @@ export default function LeftRail() {
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-14 bottom-0 w-[248px] bg-[#f5f6f7] border-r border-hairline-soft px-5 py-5 overflow-y-auto z-40">
-      <Link href="/" className="font-display font-semibold text-ink text-lg tracking-tight mb-8">
+      <Link href="/" className="font-display font-semibold text-ink text-lg tracking-tight mb-8 flex items-center gap-2">
+        <img src="/logo.png" alt="Mythos Logo" className="h-7 w-auto object-contain" />
         {SITE_CONFIG.name}
       </Link>
 

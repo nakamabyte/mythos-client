@@ -25,7 +25,8 @@ export default function TopBar() {
   return (
     <div className="flex items-center justify-between sticky top-0 z-50 h-14 bg-canvas border-b border-hairline-soft px-6 md:px-12">
       <div className="flex items-center gap-7">
-        <Link href="/" className="font-display font-semibold text-ink text-lg tracking-tight hover:text-accent-deep relative z-50">
+        <Link href="/" className="font-display font-semibold text-ink text-lg tracking-tight hover:text-accent-deep relative z-50 flex items-center gap-2">
+          <img src="/logo.png" alt="Mythos Logo" className="h-7 w-auto object-contain" />
           {SITE_CONFIG.name}
         </Link>
         <div className="hidden md:flex items-center gap-7">
