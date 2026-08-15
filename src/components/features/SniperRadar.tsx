@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Crosshair, ShieldAlert, Target } from 'lucide-react';
+import { Activity, Crosshair, ShieldAlert, Target } from 'lucide-react';
 
 interface RadarState {
   symbol: string;
@@ -14,10 +14,23 @@ interface RadarState {
 
 export default function SniperRadar() {
   const [radarStates, setRadarStates] = useState<Record<string, RadarState>>({});
+  const [activeTrades, setActiveTrades] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    // Initial fetch of the latest radar status per symbol
+    // Initial fetch
     const fetchInitial = async () => {
+      // Fetch open positions
+      const { data: trades } = await supabase
+        .from('trade_logs')
+        .select('*')
+        .eq('status', 'RUNNING');
+      
+      if (trades) {
+        const tradesMap: Record<string, any> = {};
+        trades.forEach(t => tradesMap[t.symbol] = t);
+        setActiveTrades(tradesMap);
+      }
+
       const { data, error } = await supabase
         .from('system_logs')
         .select('*')
@@ -67,8 +80,31 @@ export default function SniperRadar() {
       )
       .subscribe();
 
+    const tradesChannel = supabase
+      .channel('sniper_radar_trades')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trade_logs' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const trade = payload.new;
+            if (trade.status === 'RUNNING') {
+              setActiveTrades(prev => ({ ...prev, [trade.symbol]: trade }));
+            } else {
+              setActiveTrades(prev => {
+                const next = { ...prev };
+                delete next[trade.symbol];
+                return next;
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(tradesChannel);
     };
   }, []);
 
@@ -128,7 +164,23 @@ export default function SniperRadar() {
           <div className="flex flex-row gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {symbols.map(sym => {
               const state = radarStates[sym];
-              const config = getPhaseConfig(state.phase);
+              const activeTrade = activeTrades[sym];
+              
+              let config = getPhaseConfig(state.phase);
+              let message = state.message;
+              let details = state.details;
+
+              if (activeTrade) {
+                config = {
+                  color: activeTrade.side === 'LONG' ? 'text-[#00a86b]' : 'text-red-500',
+                  bg: activeTrade.side === 'LONG' ? 'bg-[#00a86b]/10' : 'bg-red-500/10',
+                  border: activeTrade.side === 'LONG' ? 'border-[#00a86b]/30' : 'border-red-500/30',
+                  icon: <Activity className="w-4 h-4 animate-pulse" />,
+                  label: 'ACTIVE'
+                };
+                message = `In ${activeTrade.side} position. Entry: $${activeTrade.entry_price.toFixed(4)}. Managing position...`;
+                details = null;
+              }
               
               return (
                 <div key={sym} className={`flex-1 min-w-[220px] max-w-[300px] p-3 rounded-lg border ${config.border} ${config.bg} backdrop-blur-sm transition-all duration-500`}>

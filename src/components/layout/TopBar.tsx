@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { SITE_CONFIG } from '@/data/mock';
 import { Menu, X, Activity, Briefcase, Command, Settings } from 'lucide-react';
+import NavNotifications from './NavNotifications';
 
 const IconMap: Record<string, React.ElementType> = {
   Activity, Briefcase, Command, Settings
@@ -52,6 +53,9 @@ export default function TopBar() {
             </span>
           </div>
         )}
+        
+        <NavNotifications />
+
         {!isApp && (
           <Link href="/app" className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-lg font-display text-[15px] font-medium tracking-wide transition-all cursor-pointer bg-accent text-ink hover:bg-accent-deep hover:shadow-[0_0_15px_var(--accent)] hover:scale-105 border-none h-10 px-5 no-underline relative z-50">
             Launch App
