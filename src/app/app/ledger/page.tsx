@@ -18,6 +18,7 @@ interface TradeLog {
   net_pnl_usd: number | null;
   net_pnl_pct: number | null;
   exit_reason: string | null;
+  status?: string;
   reasons?: string[]; // we can parse this from signal_data or leave blank
   signal_data?: any;
 }
@@ -33,6 +34,7 @@ export default function LedgerPage() {
       const { data, error } = await supabase
         .from('trade_logs')
         .select('*')
+        .order('status', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(100);
       
@@ -124,6 +126,7 @@ export default function LedgerPage() {
                 <th className="px-6 py-4">Time</th>
                 <th className="px-6 py-4">Symbol</th>
                 <th className="px-6 py-4">Side</th>
+                <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Size</th>
                 <th className="px-6 py-4 text-right">Entry Price</th>
                 <th className="px-6 py-4 text-right">Exit Price</th>
@@ -134,7 +137,7 @@ export default function LedgerPage() {
             <tbody className="divide-y divide-hairline-soft text-ink">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-ash">
+                  <td colSpan={9} className="px-6 py-12 text-center text-ash">
                     <div className="flex flex-col items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-deep mb-4"></div>
                       <p className="font-mono text-xs uppercase tracking-widest">Loading ledger...</p>
@@ -143,7 +146,7 @@ export default function LedgerPage() {
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-ash font-display">
+                  <td colSpan={9} className="px-6 py-12 text-center text-ash font-display">
                     No trades match the selected filters.
                   </td>
                 </tr>
@@ -159,6 +162,18 @@ export default function LedgerPage() {
                           {log.side || 'UNK'}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {log.status === 'RUNNING' ? (
+                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-accent-deep/30 bg-accent-deep/5 text-accent-deep text-[10px] font-bold uppercase tracking-wider font-display">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent-deep animate-pulse"></div>
+                          Running
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center px-2 py-1 rounded-md border border-hairline-soft bg-zinc-50 text-ash text-[10px] font-bold uppercase tracking-wider font-display">
+                          Closed
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right tabular-nums">{log.position_size || '-'}</td>
                     <td className="px-6 py-4 text-right tabular-nums">{log.entry_price ? `$${log.entry_price}` : '-'}</td>

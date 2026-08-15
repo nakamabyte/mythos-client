@@ -16,6 +16,7 @@ interface TradeLog {
   exit_time: string | null;
   exit_reason: string | null;
   net_pnl_usd: number | null;
+  status?: string;
 }
 
 export default function AgentLogs() {
@@ -28,6 +29,7 @@ export default function AgentLogs() {
       const { data, error } = await supabase
         .from('trade_logs')
         .select('id, symbol, side, status, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
+        .order('status', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -47,9 +49,23 @@ export default function AgentLogs() {
         { event: '*', schema: 'public', table: 'trade_logs' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setLogs((current) => [payload.new as TradeLog, ...current].slice(0, 10));
+            setLogs((current) => {
+              const newLogs = [payload.new as TradeLog, ...current];
+              return newLogs.sort((a, b) => {
+                if ((a.net_pnl_usd === null) && (b.net_pnl_usd !== null)) return -1;
+                if ((a.net_pnl_usd !== null) && (b.net_pnl_usd === null)) return 1;
+                return new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime();
+              }).slice(0, 10);
+            });
           } else if (payload.eventType === 'UPDATE') {
-            setLogs((current) => current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log));
+            setLogs((current) => {
+              const updatedLogs = current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log);
+              return updatedLogs.sort((a, b) => {
+                if ((a.net_pnl_usd === null) && (b.net_pnl_usd !== null)) return -1;
+                if ((a.net_pnl_usd !== null) && (b.net_pnl_usd === null)) return 1;
+                return new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime();
+              });
+            });
           }
         }
       )
@@ -63,7 +79,7 @@ export default function AgentLogs() {
   const formatTime = (isoString: string | null) => {
     if (!isoString) return 'Pending';
     const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   const formatCurrency = (value: number | null) => {
@@ -110,9 +126,16 @@ export default function AgentLogs() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-display text-sm font-semibold text-ink">{log.symbol}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase ${log.net_pnl_usd === null ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse' : 'bg-stone/10 text-stone border border-stone/20'}`}>
-                        {log.net_pnl_usd === null ? 'RUNNING' : formatExitReason(log.exit_reason)}
-                      </span>
+                      {log.status === 'RUNNING' ? (
+                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-accent-deep/30 bg-accent-deep/5 text-accent-deep text-[10px] font-bold uppercase tracking-wider font-display">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent-deep animate-pulse"></div>
+                          Running
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center px-2 py-1 rounded-md border border-hairline-soft bg-zinc-50 text-ash text-[10px] font-bold uppercase tracking-wider font-display">
+                          Closed
+                        </div>
+                      )}
                     </div>
                     <div className="text-[11px] text-ash mt-0.5">{formatTime(log.entry_time)}</div>
                   </div>

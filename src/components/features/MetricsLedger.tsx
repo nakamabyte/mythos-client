@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 interface Metrics {
   totalBalance: number;
   performance30d: number;
-  activeStrategies: { current: number; total: number };
+  trades: { running: number; closed: number; total: number };
   winRate: number;
   maxDrawdown: number;
 }
@@ -16,7 +16,7 @@ export default function MetricsLedger() {
   const [metrics, setMetrics] = useState<Metrics>({
     totalBalance: 0,
     performance30d: 0,
-    activeStrategies: { current: 0, total: 0 },
+    trades: { running: 0, closed: 0, total: 0 },
     winRate: 0,
     maxDrawdown: 0,
   });
@@ -27,6 +27,8 @@ export default function MetricsLedger() {
       // Base balance matching Paper Trading balance
       const BASE_BALANCE = 10000;
       let totalPnl = 0;
+      let runningCount = 0;
+      let closedCount = 0;
       let totalWinners = 0;
       let totalTrades = 0;
 
@@ -34,23 +36,16 @@ export default function MetricsLedger() {
       const { data: tradeLogs } = await supabase.from('trade_logs').select('net_pnl_usd');
       if (tradeLogs && tradeLogs.length > 0) {
         tradeLogs.forEach((row) => {
-          if (row.net_pnl_usd !== null) {
+          totalTrades += 1;
+          if (row.net_pnl_usd === null) {
+            runningCount += 1;
+          } else {
+            closedCount += 1;
             const pnl = Number(row.net_pnl_usd);
             totalPnl += pnl;
-            totalTrades += 1;
             if (pnl > 0) totalWinners += 1;
           }
         });
-      }
-
-      // Fetch strategies
-      const { data: strategiesData } = await supabase.from('strategies').select('id, is_active, status');
-      let activeCount = 0;
-      let totalCount = 0;
-      if (strategiesData) {
-        totalCount = strategiesData.length;
-        // Count both explicitly active and sandbox/paper-trading strategies
-        activeCount = strategiesData.filter(s => s.is_active || s.status === 'sandbox').length;
       }
 
       const winRate = totalTrades > 0 ? (totalWinners / totalTrades) * 100 : 0;
@@ -62,7 +57,7 @@ export default function MetricsLedger() {
       setMetrics({
         totalBalance: BASE_BALANCE + totalPnl,
         performance30d: perf30d,
-        activeStrategies: { current: activeCount, total: totalCount },
+        trades: { running: runningCount, closed: closedCount, total: totalTrades },
         winRate: winRate,
         maxDrawdown: mockDrawdown, 
       });
@@ -102,9 +97,15 @@ export default function MetricsLedger() {
       {/* Right Side: Secondary Stats */}
       <div className="flex items-center gap-6 w-full md:w-auto border-t md:border-t-0 md:border-l border-hairline-soft pt-4 md:pt-0 md:pl-6">
         <div className="flex flex-col gap-1">
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-ash">Active Strats</div>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-ash">Active / Closed</div>
           <div className="font-display text-sm font-medium text-ink tabular-nums">
-            {isLoading ? '-' : `${metrics.activeStrategies.current} / ${metrics.activeStrategies.total}`}
+            {isLoading ? '-' : `${metrics.trades.running} / ${metrics.trades.closed}`}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-ash">Total History</div>
+          <div className="font-display text-sm font-medium text-ink tabular-nums">
+            {isLoading ? '-' : metrics.trades.total}
           </div>
         </div>
         <div className="flex flex-col gap-1">
