@@ -135,7 +135,7 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
         {/* The Card to be exported */}
         <div 
           ref={cardRef}
-          className="relative w-full aspect-[16/9] rounded-xl overflow-hidden shadow-2xl flex flex-col p-8"
+          className="relative w-full min-h-[440px] rounded-xl overflow-hidden shadow-2xl flex flex-col p-8"
           style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
           }}
@@ -211,20 +211,30 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
             )}
           </div>
 
-          {/* Prices */}
-          <div className="relative z-10 flex gap-16 mt-auto">
-            <div>
-              <div className="text-zinc-400 text-base font-display mb-1">Entry Price</div>
-              <div className="text-white font-display text-3xl font-bold">
-                {trade.entry_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '-'}
+          {/* Bottom Row: Prices & Contract Address */}
+          <div className="relative z-10 flex flex-col gap-6 mt-auto w-full">
+            <div className="flex gap-12 sm:gap-16">
+              <div>
+                <div className="text-zinc-400 text-base font-display mb-1">Entry Price</div>
+                <div className="text-white font-display text-3xl font-bold">
+                  {trade.entry_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '-'}
+                </div>
+              </div>
+              <div>
+                <div className="text-zinc-400 text-base font-display mb-1">Filled Price</div>
+                <div className="text-white font-display text-3xl font-bold">
+                  {trade.exit_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '-'}
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-zinc-400 text-base font-display mb-1">Filled Price</div>
-              <div className="text-white font-display text-3xl font-bold">
-                {trade.exit_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '-'}
+
+            {/* Contract Address */}
+            {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && (
+              <div className="bg-white/5 rounded-lg px-4 py-3 border border-white/10 flex items-center justify-between gap-3 backdrop-blur-sm w-full">
+                <span className="text-zinc-400 font-display text-[11px] tracking-widest uppercase">Contract</span>
+                <span className="text-white font-mono text-[12px] tracking-wide break-all">{process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}</span>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

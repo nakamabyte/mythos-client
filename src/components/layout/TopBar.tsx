@@ -50,7 +50,7 @@ export default function TopBar() {
           >
             <Badge>CA</Badge>
             <span className="font-mono text-xs whitespace-nowrap">
-              {`${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(0, 6)}...${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(-4)}`}
+              {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}
             </span>
           </div>
         )}
