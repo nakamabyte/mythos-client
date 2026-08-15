@@ -44,9 +44,9 @@ export default function TopBar() {
             className="hidden lg:inline-flex items-center gap-2 bg-canvas border border-hairline rounded-md px-2.5 h-8 font-display text-charcoal cursor-pointer hover:border-ink hover:text-ink transition-colors"
             onClick={() => {
               const ca = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
-              if (ca) navigator.clipboard.writeText(ca);
+              if (ca) window.open(`https://pump.fun/${ca}`, '_blank');
             }}
-            title="Click to copy CA"
+            title="View on pump.fun"
           >
             <Badge>CA</Badge>
             <span className="font-mono text-xs whitespace-nowrap">
