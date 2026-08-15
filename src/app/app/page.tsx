@@ -44,23 +44,23 @@ export default function DashboardPage() {
   const activeFleet = strategies.filter(s => s.is_active);
 
   return (
-    <div className="h-[calc(100vh-65px)] flex flex-col p-2 gap-2 bg-zinc-50/50">
+    <div className="lg:h-[calc(100vh-56px)] min-h-[calc(100vh-56px)] flex flex-col p-3 md:p-5 gap-3 md:gap-5 bg-zinc-50/50 overflow-y-auto lg:overflow-hidden">
       
       {/* Top Ribbon: Metrics */}
       <div className="flex-none">
         <MetricsLedger />
       </div>
 
-      {/* Tactical Radar (Moved above Vaults & Terminal as requested) */}
+      {/* Tactical Radar */}
       <div className="flex-none">
         <SniperRadar />
       </div>
 
       {/* Main Terminal Grid */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-5 min-h-0">
         
         {/* Left Column: Command Center */}
-        <div className="lg:col-span-3 flex flex-col min-h-0">
+        <div className="lg:col-span-3 flex flex-col min-h-[350px] lg:min-h-0">
           
           <div className="flex-1 border border-hairline-soft bg-white rounded-xl flex flex-col min-h-0 overflow-hidden shadow-sm">
             <div className="bg-zinc-50 border-b border-hairline-soft px-4 py-3 flex justify-between items-center">
@@ -128,12 +128,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Middle Column: Trade Execution Logs */}
-        <div className="lg:col-span-5 flex flex-col min-h-0">
+        <div className="lg:col-span-5 flex flex-col min-h-[400px] lg:min-h-0">
           <AgentLogs />
         </div>
 
         {/* Right Column: System Logs */}
-        <div className="lg:col-span-4 flex flex-col min-h-0">
+        <div className="lg:col-span-4 flex flex-col min-h-[400px] lg:min-h-0">
           <SystemLogs />
         </div>
 

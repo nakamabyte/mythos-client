@@ -132,14 +132,16 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
           </button>
         </div>
 
-        {/* The Card to be exported */}
-        <div 
-          ref={cardRef}
-          className="relative w-full min-h-[440px] rounded-xl overflow-hidden shadow-2xl flex flex-col p-8"
-          style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
-          }}
-        >
+        {/* Scrollable Wrapper for Mobile Preview */}
+        <div className="w-full overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin">
+          {/* The Card to be exported */}
+          <div 
+            ref={cardRef}
+            className="relative w-full min-w-[540px] min-h-[440px] rounded-xl overflow-hidden shadow-2xl flex flex-col p-8"
+            style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
+            }}
+          >
           {/* Subtle Grid Background */}
           <div 
             className="absolute inset-0 opacity-10"
@@ -191,7 +193,7 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
           <div className="relative z-10 mb-8 flex items-baseline gap-6">
             <div>
               <div className="text-zinc-400 text-base font-display mb-1">ROI</div>
-              <div className={`font-display text-5xl md:text-6xl font-bold tracking-tighter ${
+              <div className={`font-display text-6xl font-bold tracking-tighter ${
                 isProfit ? 'text-[#00c853]' : 'text-red-500'
               }`}>
                 {isProfit ? '+' : ''}{displayRoi}%
@@ -202,7 +204,7 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
             {trade.net_pnl_usd !== null && (
               <div className="ml-4">
                 <div className="text-zinc-400 text-base font-display mb-1">PnL</div>
-                <div className={`font-display text-3xl md:text-4xl font-bold tracking-tight ${
+                <div className={`font-display text-4xl font-bold tracking-tight ${
                   isProfit ? 'text-[#00c853]' : 'text-red-500'
                 }`}>
                   {isProfit ? '+' : ''}${Math.abs(trade.net_pnl_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -213,7 +215,7 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
 
           {/* Bottom Row: Prices & Contract Address */}
           <div className="relative z-10 flex flex-col gap-6 mt-auto w-full">
-            <div className="flex gap-12 sm:gap-16">
+            <div className="flex gap-16">
               <div>
                 <div className="text-zinc-400 text-base font-display mb-1">Entry Price</div>
                 <div className="text-white font-display text-3xl font-bold">
@@ -237,9 +239,10 @@ export function PnLShareModal({ trade, isOpen, onClose }: PnLShareModalProps) {
             )}
           </div>
         </div>
+        </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
           <button 
             onClick={handleDownload}
             disabled={isExporting}
