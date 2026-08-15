@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import MetricsLedger from "@/components/features/MetricsLedger";
+import SniperRadar from "@/components/features/SniperRadar";
 import AgentLogs from "@/components/features/AgentLogs";
 import SystemLogs from "@/components/features/SystemLogs";
 import { Badge } from '@/components/ui/Badge';
@@ -48,6 +49,11 @@ export default function DashboardPage() {
       {/* Top Ribbon: Metrics */}
       <div className="flex-none">
         <MetricsLedger />
+      </div>
+
+      {/* Tactical Radar (Moved above Vaults & Terminal as requested) */}
+      <div className="flex-none">
+        <SniperRadar />
       </div>
 
       {/* Main Terminal Grid */}

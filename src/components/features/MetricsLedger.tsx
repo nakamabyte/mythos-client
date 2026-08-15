@@ -32,20 +32,27 @@ export default function MetricsLedger() {
       let totalWinners = 0;
       let totalTrades = 0;
 
-      // Fetch trade logs (including paper trades) to calculate realistic PnL
-      const { data: tradeLogs } = await supabase.from('trade_logs').select('net_pnl_usd');
-      if (tradeLogs && tradeLogs.length > 0) {
-        tradeLogs.forEach((row) => {
-          totalTrades += 1;
-          if (row.net_pnl_usd === null) {
-            runningCount += 1;
-          } else {
-            closedCount += 1;
-            const pnl = Number(row.net_pnl_usd);
-            totalPnl += pnl;
-            if (pnl > 0) totalWinners += 1;
-          }
-        });
+      try {
+        // Fetch trade logs (including paper trades) to calculate realistic PnL
+        const { data: tradeLogs, error } = await supabase.from('trade_logs').select('net_pnl_usd');
+        
+        if (error) {
+          console.warn('Supabase fetch error:', error);
+        } else if (tradeLogs && tradeLogs.length > 0) {
+          tradeLogs.forEach((row) => {
+            totalTrades += 1;
+            if (row.net_pnl_usd === null) {
+              runningCount += 1;
+            } else {
+              closedCount += 1;
+              const pnl = Number(row.net_pnl_usd);
+              totalPnl += pnl;
+              if (pnl > 0) totalWinners += 1;
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Caught exception during fetch (likely browser extension interference):', err);
       }
 
       const winRate = totalTrades > 0 ? (totalWinners / totalTrades) * 100 : 0;
