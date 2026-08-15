@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { Bell, Check, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { Bell, Target, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 
 export type AppNotification = {
   id: string;
@@ -79,9 +79,9 @@ export default function NavNotifications() {
 
   const getIcon = (type: string, isProfit?: boolean) => {
     switch (type) {
-      case 'TRADE_OPEN': return <TrendingUp size={16} className="text-stone" />;
-      case 'TRADE_CLOSE': return isProfit ? <Check size={16} className="text-[#00a86b]" /> : <TrendingDown size={16} className="text-red-500" />;
-      default: return <Info size={16} className="text-blue-500" />;
+      case 'TRADE_OPEN': return <Target size={14} strokeWidth={2.5} className="text-stone" />;
+      case 'TRADE_CLOSE': return isProfit ? <ArrowUpRight size={15} strokeWidth={2.5} className="text-[#00a86b]" /> : <ArrowDownRight size={15} strokeWidth={2.5} className="text-red-500" />;
+      default: return <Activity size={14} strokeWidth={2.5} className="text-blue-500" />;
     }
   };
 
@@ -96,14 +96,14 @@ export default function NavNotifications() {
       >
         <Bell size={20} />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-white" />
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-accent-deep rounded-full border-2 border-canvas" />
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-hairline-soft shadow-xl rounded-xl overflow-hidden z-50 flex flex-col">
-          <div className="flex justify-between items-center p-3 border-b border-hairline-soft bg-zinc-50">
-            <span className="font-display font-semibold text-sm">Notifications</span>
+        <div className="absolute top-full right-0 mt-3 w-[340px] bg-white/90 backdrop-blur-xl border border-hairline-soft shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl overflow-hidden z-50 flex flex-col">
+          <div className="flex justify-between items-center px-5 py-3.5 border-b border-hairline-soft/50 bg-zinc-50/50">
+            <span className="font-display font-bold text-[11px] uppercase tracking-[0.2em] text-ink/70">Execution Feed</span>
           </div>
           
           <div className="flex-1 max-h-[400px] overflow-y-auto scrollbar-thin">
@@ -119,25 +119,25 @@ export default function NavNotifications() {
                 return (
                   <div 
                     key={notif.id}
-                    className={`p-3 border-b border-hairline-soft flex gap-3 transition-colors ${notif.is_read ? 'bg-white opacity-80' : 'bg-blue-50/30'}`}
+                    className={`px-5 py-4 border-b border-hairline-soft/30 flex gap-3.5 transition-colors ${notif.is_read ? 'hover:bg-zinc-50/50' : 'bg-accent/5 hover:bg-accent/10'}`}
                   >
-                    <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      type === 'TRADE_OPEN' ? 'bg-zinc-100' :
-                      type === 'TRADE_CLOSE' ? (isProfit ? 'bg-[#00d084]/20' : 'bg-red-100') :
-                      'bg-blue-100'
+                    <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm ${
+                      type === 'TRADE_OPEN' ? 'bg-zinc-50 border-zinc-200' :
+                      type === 'TRADE_CLOSE' ? (isProfit ? 'bg-[#00a86b]/5 border-[#00a86b]/20 shadow-[#00a86b]/5' : 'bg-red-500/5 border-red-500/20 shadow-red-500/5') :
+                      'bg-blue-50 border-blue-200'
                     }`}>
                       {getIcon(type, isProfit)}
                     </div>
                     
                     <div className="flex-1 flex flex-col">
-                      <div className="flex justify-between items-start">
-                        <span className="font-semibold text-xs text-ink">{title}</span>
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="font-display font-semibold text-[13px] text-ink">{title}</span>
+                        <span className="text-[10px] text-mute font-mono whitespace-nowrap">
+                          {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
-                      <span className="text-[11px] text-stone mt-0.5 leading-snug">
+                      <span className="text-[12px] text-stone mt-1 leading-relaxed">
                         {msg}
-                      </span>
-                      <span className="text-[9px] text-mute mt-2">
-                        {new Date(notif.created_at).toLocaleTimeString()}
                       </span>
                     </div>
                   </div>
