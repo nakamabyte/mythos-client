@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Share2 } from 'lucide-react';
 import Link from 'next/link';
+import { PnLShareModal } from '@/components/features/PnLShareModal';
 
 interface TradeLog {
   id: string;
@@ -28,6 +29,15 @@ export default function LedgerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [filterSymbol, setFilterSymbol] = useState('ALL');
   const [filterSide, setFilterSide] = useState('ALL');
+
+  // Share Modal State
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedShareTrade, setSelectedShareTrade] = useState<TradeLog | null>(null);
+
+  const handleShare = (trade: TradeLog) => {
+    setSelectedShareTrade(trade);
+    setIsShareModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -132,6 +142,7 @@ export default function LedgerPage() {
                 <th className="px-6 py-4 text-right">Exit Price</th>
                 <th className="px-6 py-4 text-right">Net PnL</th>
                 <th className="px-6 py-4">Reason / Notes</th>
+                <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline-soft text-ink">
@@ -146,7 +157,7 @@ export default function LedgerPage() {
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-ash font-display">
+                  <td colSpan={10} className="px-6 py-12 text-center text-ash font-display">
                     No trades match the selected filters.
                   </td>
                 </tr>
@@ -190,6 +201,17 @@ export default function LedgerPage() {
                     <td className="px-6 py-4 text-xs text-ash max-w-[200px] truncate" title={getReason(log)}>
                       {getReason(log)}
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {log.status === 'CLOSED' && log.net_pnl_usd !== null && (
+                        <button 
+                          onClick={() => handleShare(log)}
+                          className="p-1.5 text-ash hover:text-ink hover:bg-zinc-100 rounded-md transition-colors"
+                          title="Share PnL Card"
+                        >
+                          <Share2 size={16} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -197,6 +219,12 @@ export default function LedgerPage() {
           </table>
         </div>
       </div>
+
+      <PnLShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => setIsShareModalOpen(false)} 
+        trade={selectedShareTrade} 
+      />
     </div>
   );
 }
