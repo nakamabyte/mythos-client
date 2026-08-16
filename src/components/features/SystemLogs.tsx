@@ -29,7 +29,11 @@ export default function SystemLogs() {
         .limit(50);
       
       if (!error && data) {
-        setLogs(data.reverse()); // Reverse to put oldest at top, newest at bottom
+        setLogs(prev => {
+          const newData = data.reverse();
+          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
+          return newData;
+        });
       }
       if (isInitial) setIsLoading(false);
     };

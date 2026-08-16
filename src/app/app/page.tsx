@@ -27,7 +27,12 @@ export default function DashboardPage() {
       const { data } = await supabase
         .from('strategies')
         .select('id, name, status, execution_mode, is_active, market_type');
-      if (data) setStrategies(data);
+      if (data) {
+        setStrategies(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+          return data;
+        });
+      }
       if (isInitial) setIsLoading(false);
     };
     

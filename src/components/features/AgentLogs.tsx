@@ -34,7 +34,10 @@ export default function AgentLogs() {
         .limit(20);
       
       if (!error && data) {
-        setLogs(data);
+        setLogs(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+          return data;
+        });
       }
       if (isInitial) setIsLoading(false);
     };
