@@ -2,7 +2,6 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import TopBar from "@/components/layout/TopBar";
 import Hero from "@/components/features/Hero";
 import MarketTicker from "@/components/features/MarketTicker";
-import StatsSection from "@/components/features/StatsSection";
 import StrategiesSection from "@/components/features/StrategiesSection";
 import HowItWorks from "@/components/features/HowItWorks";
 import SecuritySection from "@/components/features/SecuritySection";
@@ -45,7 +44,7 @@ export default function Home() {
           </div>
         </section>
 
-        <StatsSection />
+
         <StrategiesSection />
         <HowItWorks />
         <SecuritySection />
