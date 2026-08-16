@@ -23,22 +23,20 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStrategies = async () => {
+    const fetchStrategies = async (isInitial = true) => {
       const { data } = await supabase
         .from('strategies')
         .select('id, name, status, execution_mode, is_active, market_type');
       if (data) setStrategies(data);
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
     };
     
-    fetchStrategies();
+    fetchStrategies(true);
     
-    const channel = supabase
-      .channel('strategies_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'strategies' }, fetchStrategies)
-      .subscribe();
+    // Poll silently every 5 seconds
+    const interval = setInterval(() => fetchStrategies(false), 5000);
       
-    return () => { supabase.removeChannel(channel); };
+    return () => clearInterval(interval);
   }, []);
 
   const activeFleet = strategies.filter(s => s.is_active);

@@ -20,8 +20,7 @@ export default function SystemLogs() {
   const endOfLogsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 1. Fetch initial logs
-    const fetchLogs = async () => {
+    const fetchLogs = async (isInitial = true) => {
       const { data, error } = await supabase
         .from('system_logs')
         .select('*')
@@ -32,29 +31,14 @@ export default function SystemLogs() {
       if (!error && data) {
         setLogs(data.reverse()); // Reverse to put oldest at top, newest at bottom
       }
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
     };
 
-    fetchLogs();
+    fetchLogs(true);
 
-    // 2. Set up realtime subscription
-    const channel = supabase
-      .channel('system_logs_changes')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'system_logs' },
-        (payload) => {
-          const newLog = payload.new as SystemLog;
-          if (newLog.level?.toLowerCase() !== 'error') {
-            setLogs((current) => [...current, newLog].slice(-50));
-          }
-        }
-      )
-      .subscribe();
+    const interval = setInterval(() => fetchLogs(false), 5000);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   // Auto-scroll to bottom on new logs

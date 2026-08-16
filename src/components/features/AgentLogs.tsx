@@ -25,8 +25,7 @@ export default function AgentLogs() {
   const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // 1. Fetch initial data
-    const fetchLogs = async () => {
+    const fetchLogs = async (isInitial = true) => {
       const { data, error } = await supabase
         .from('trade_logs')
         .select('id, symbol, side, status, entry_price, position_size, entry_time, exit_time, exit_reason, net_pnl_usd')
@@ -37,47 +36,14 @@ export default function AgentLogs() {
       if (!error && data) {
         setLogs(data);
       }
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
     };
 
-    fetchLogs();
+    fetchLogs(true);
 
-    // 2. Set up realtime subscription
-    const channel = supabase
-      .channel('trade_logs_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'trade_logs' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            if (payload.new.status === 'RUNNING') {
-              setLogs((current) => {
-                const newLogs = [payload.new as TradeLog, ...current];
-                return newLogs.sort((a, b) => new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime());
-              });
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            setLogs((current) => {
-              if (payload.new.status !== 'RUNNING') {
-                return current.filter(log => log.id !== payload.new.id);
-              }
-              const exists = current.find(log => log.id === payload.new.id);
-              let updatedLogs = current;
-              if (exists) {
-                updatedLogs = current.map(log => log.id === payload.new.id ? { ...log, ...payload.new } as TradeLog : log);
-              } else {
-                updatedLogs = [payload.new as TradeLog, ...current];
-              }
-              return updatedLogs.sort((a, b) => new Date(b.entry_time || 0).getTime() - new Date(a.entry_time || 0).getTime());
-            });
-          }
-        }
-      )
-      .subscribe();
+    const interval = setInterval(() => fetchLogs(false), 5000);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   // Poll for real-time prices
