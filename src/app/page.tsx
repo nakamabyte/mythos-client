@@ -2,7 +2,7 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import TopBar from "@/components/layout/TopBar";
 import Hero from "@/components/features/Hero";
 import MarketTicker from "@/components/features/MarketTicker";
-import StrategiesSection from "@/components/features/StrategiesSection";
+
 import HowItWorks from "@/components/features/HowItWorks";
 import SecuritySection from "@/components/features/SecuritySection";
 import FaqSection from "@/components/features/FaqSection";
@@ -45,7 +45,7 @@ export default function Home() {
         </section>
 
 
-        <StrategiesSection />
+
         <HowItWorks />
         <SecuritySection />
         <FaqSection />
