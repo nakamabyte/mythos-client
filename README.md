@@ -2,7 +2,7 @@
 
 ## 🌐 Socials & Links
 - **X (Twitter)**: [https://x.com/MythosAgent7](https://x.com/MythosAgent7)
-- **Contract Address (CA)**: [GFjqvQNc64dST5mBcb7FodswGG4DC4ZifBG8haJUpump](https://pump.fun/GFjqvQNc64dST5mBcb7FodswGG4DC4ZifBG8haJUpump)
+- **Contract Address (CA)**: [6sUHgy5aWyiwmi5LnoGCQGg2s4EyxjgRDQ3Cm7Kcpump](https://pump.fun/6sUHgy5aWyiwmi5LnoGCQGg2s4EyxjgRDQ3Cm7Kcpump)
 
 Mythos Client is the frontend user interface and dashboard for the **Mythos Autonomous AI Trading Factory**. It provides a sleek, institutional-grade portal to monitor real-time algorithmic trading strategies, view agent executions, and check active portfolio vaults.
 
